@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Baraja\VariableGenerator;
 
 
-interface CurrentVariableLoader
+interface VariableLoader
 {
 	public function getCurrent(): ?string;
 }

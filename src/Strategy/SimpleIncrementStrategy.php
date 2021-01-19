@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Baraja\VariableGenerator\Strategy;
 
 
-final class SimpleIncrementStrategy implements IVariableGeneratorStrategy
+final class SimpleIncrementStrategy implements FormatStrategy
 {
 	public function generate(string $last): string
 	{

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Baraja\VariableGenerator\Strategy;
 
 
-interface IVariableGeneratorStrategy
+interface FormatStrategy
 {
 	public function generate(string $last): string;
 

@@ -7,6 +7,7 @@ namespace Baraja\VariableGenerator\Order;
 
 use Baraja\VariableGenerator\VariableLoader;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 
 final class DefaultOrderVariableLoader implements VariableLoader
 {
@@ -25,7 +26,10 @@ final class DefaultOrderVariableLoader implements VariableLoader
 	public function getCurrent(): ?string
 	{
 		try {
-			return (string) $this->entityManager->getRepository($this->entityClassName)
+			return (string) (new EntityRepository(
+				$this->entityManager,
+				$this->entityManager->getClassMetadata($this->entityClassName)
+			))
 				->createQueryBuilder('o')
 				->select('o.number')
 				->orderBy('o.number', 'DESC')

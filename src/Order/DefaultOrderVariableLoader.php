@@ -28,7 +28,7 @@ final class DefaultOrderVariableLoader implements VariableLoader
 		try {
 			return (string) (new EntityRepository(
 				$this->entityManager,
-				$this->entityManager->getClassMetadata($this->entityClassName)
+				$this->entityManager->getClassMetadata($this->entityClassName),
 			))
 				->createQueryBuilder('o')
 				->select('o.number')

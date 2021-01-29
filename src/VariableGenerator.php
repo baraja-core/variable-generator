@@ -18,8 +18,11 @@ final class VariableGenerator
 	private FormatStrategy $strategy;
 
 
-	public function __construct(?VariableLoader $variableLoader = null, ?FormatStrategy $strategy = null, ?EntityManagerInterface $em = null)
-	{
+	public function __construct(
+		?VariableLoader $variableLoader = null,
+		?FormatStrategy $strategy = null,
+		?EntityManagerInterface $em = null
+	) {
 		$this->variableLoader = $this->resolveVariableLoader($variableLoader, $em);
 		$this->strategy = $strategy ?? new YearPrefixIncrementStrategy;
 	}
@@ -31,7 +34,7 @@ final class VariableGenerator
 	 */
 	public function generate(?string $last = null): int
 	{
-		$new = (($last = $last ?? $this->variableLoader->getCurrent()) === null)
+		$new = ($last ??= $this->variableLoader->getCurrent()) === null
 			? $this->strategy->getFirst()
 			: $this->strategy->generate((string) preg_replace('/\D+/', '', (string) $last));
 
@@ -60,7 +63,7 @@ final class VariableGenerator
 			throw new \RuntimeException(
 				'Service for VariableLoader not found. '
 				. 'Please implement your own service that implements "' . VariableLoader::class . '" interface, '
-				. 'or implement the "' . OrderEntity::class . '" interface for one of the Doctrine entities.'
+				. 'or implement the "' . OrderEntity::class . '" interface for one of the Doctrine entities.',
 			);
 		}
 		$canonicalEntity = null;
@@ -71,7 +74,7 @@ final class VariableGenerator
 						'OrderEntity search error: Several entities implement the same "' . OrderEntity::class . '" interface.' . "\n"
 						. 'Found entities: "' . $entity->getName() . '" and "' . $canonicalEntity . '"' . "\n"
 						. 'To solve this issue: Set dependencies so that only one entity implements this general interface. '
-						. 'If you need to keep the current definitions, implement your own service for VariableLoader.'
+						. 'If you need to keep the current definitions, implement your own service for VariableLoader.',
 					);
 				}
 				$canonicalEntity = $entity->getName();

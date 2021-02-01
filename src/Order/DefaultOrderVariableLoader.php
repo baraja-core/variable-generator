@@ -23,19 +23,27 @@ final class DefaultOrderVariableLoader implements VariableLoader
 	}
 
 
-	public function getCurrent(): ?string
+	public function getCurrent(?\DateTime $findFromDate = null): ?string
 	{
+		$selector = (new EntityRepository(
+			$this->entityManager,
+			$this->entityManager->getClassMetadata($this->entityClassName),
+		))
+			->createQueryBuilder('o')
+			->select('o.number')
+			->orderBy('o.number', 'DESC')
+			->setMaxResults(1);
+
+		if (method_exists($this->entityClassName, 'getInsertedDate')) {
+			$selector->andWhere('o.insertedDate > :lastYear')
+				->setParameter('lastYear', $findFromDate === null
+					? (date('Y') - 1) . '-01-01'
+					: $findFromDate->format('Y-m-d')
+				);
+		}
+
 		try {
-			return (string) (new EntityRepository(
-				$this->entityManager,
-				$this->entityManager->getClassMetadata($this->entityClassName),
-			))
-				->createQueryBuilder('o')
-				->select('o.number')
-				->orderBy('o.number', 'DESC')
-				->setMaxResults(1)
-				->getQuery()
-				->getSingleScalarResult();
+			return (string) $selector->getQuery()->getSingleScalarResult();
 		} catch (\Throwable $e) {
 		}
 

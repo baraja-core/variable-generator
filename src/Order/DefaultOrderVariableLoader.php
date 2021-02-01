@@ -40,7 +40,7 @@ final class DefaultOrderVariableLoader implements VariableLoader
 					'preferenceInsertedDateFrom',
 					$findFromDate === null
 						? (date('Y') - 1) . '-' . date('m-d')
-						: $findFromDate->format('Y-m-d')
+						: $findFromDate->format('Y-m-d'),
 				);
 		}
 

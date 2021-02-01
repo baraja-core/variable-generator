@@ -35,10 +35,12 @@ final class DefaultOrderVariableLoader implements VariableLoader
 			->setMaxResults(1);
 
 		if (method_exists($this->entityClassName, 'getInsertedDate')) {
-			$selector->andWhere('o.insertedDate > :lastYear')
-				->setParameter('lastYear', $findFromDate === null
-					? (date('Y') - 1) . '-01-01'
-					: $findFromDate->format('Y-m-d')
+			$selector->andWhere('o.insertedDate > :preferenceInsertedDateFrom')
+				->setParameter(
+					'preferenceInsertedDateFrom',
+					$findFromDate === null
+						? (date('Y') - 1) . '-' . date('m-d')
+						: $findFromDate->format('Y-m-d')
 				);
 		}
 

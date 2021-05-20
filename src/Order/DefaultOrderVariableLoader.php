@@ -11,15 +11,10 @@ use Doctrine\ORM\EntityRepository;
 
 final class DefaultOrderVariableLoader implements VariableLoader
 {
-	private EntityManagerInterface $entityManager;
-
-	private string $entityClassName;
-
-
-	public function __construct(EntityManagerInterface $entityManager, string $entityClassName)
-	{
-		$this->entityManager = $entityManager;
-		$this->entityClassName = $entityClassName;
+	public function __construct(
+		private EntityManagerInterface $entityManager,
+		private string $entityClassName,
+	) {
 	}
 
 
@@ -46,7 +41,8 @@ final class DefaultOrderVariableLoader implements VariableLoader
 
 		try {
 			return (string) $selector->getQuery()->getSingleScalarResult();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
+			// Silence is golden.
 		}
 
 		return null;

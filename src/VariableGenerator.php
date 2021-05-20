@@ -44,7 +44,11 @@ final class VariableGenerator
 
 	public function getCurrent(bool $findReal = true): int
 	{
-		return (int) (($findReal === true ? $this->variableLoader->getCurrent() : null) ?? $this->strategy->getFirst());
+		$currentValue = $findReal === true
+			? $this->variableLoader->getCurrent()
+			: null;
+
+		return (int) ($currentValue ?? $this->strategy->getFirst());
 	}
 
 

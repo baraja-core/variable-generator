@@ -7,8 +7,7 @@ namespace Baraja\VariableGenerator\Order;
 
 interface OrderEntity
 {
-	/** @return string|int|null */
-	public function getId();
+	public function getId(): string|int|null;
 
 	public function getNumber(): string;
 }

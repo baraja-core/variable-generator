@@ -29,6 +29,47 @@ $ composer require baraja-core/variable-generator
 
 You can use the package manually by creating an instance of the internal classes, or register a DIC extension to link the services directly to the Nette Framework.
 
+How to use
+----------
+
+At the beginning, create an instance of the Generator or get it from the DIC. If you are using Doctrine entities, there is an autoconfiguration that will automatically find your entity with an order (must meet the `OrderEntity` interface) and you can start generating numbers.
+
+Example:
+
+```php
+$generator = new VariableGenerator(
+	variableLoader, // last used variable loader, default is DefaultOrderVariableLoader
+	strategy, // generator strategy, default is YearPrefixIncrementStrategy
+	entityManager, // if you want use default variable loader by Doctrine entity
+);
+```
+
+The generator is easy to use.
+
+Retrieve the next free number (using it without an argument automatically retrieves the last used number based on the variableLoader service).
+
+```php
+echo $generator->generate();
+```
+
+Getting the next available number based on the user's choice:
+
+```php
+echo $generator->generate(21010034); // next will be 21010035
+```
+
+Retrieving the last generated number:
+
+```php
+echo $generator->getCurrent();
+```
+
+You can always choose your own strategy for generating numbers:
+
+```php
+$generator->setStrategy();
+```
+
 📄 License
 -----------
 

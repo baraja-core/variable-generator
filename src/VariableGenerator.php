@@ -37,7 +37,8 @@ final class VariableGenerator
 	 */
 	public function generate(?string $last = null): int
 	{
-		$new = ($last ??= $this->variableLoader->getCurrent()) === null
+		$last ??= $this->variableLoader->getCurrent();
+		$new = $last === null
 			? $this->strategy->getFirst()
 			: $this->strategy->generate((string) preg_replace('/\D+/', '', (string) $last));
 

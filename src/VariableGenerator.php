@@ -11,6 +11,9 @@ use Baraja\VariableGenerator\Strategy\FormatStrategy;
 use Baraja\VariableGenerator\Strategy\YearPrefixIncrementStrategy;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * A generic service for generating a unique order number, variable symbol or other unique identifier.
+ */
 final class VariableGenerator
 {
 	private VariableLoader $variableLoader;
@@ -42,6 +45,10 @@ final class VariableGenerator
 	}
 
 
+	/**
+	 * Returns the current latest number. For example, the order number.
+	 * Warning: Never use this number for create a new entity, in this case use the generate() method.
+	 */
 	public function getCurrent(bool $findReal = true): int
 	{
 		$currentValue = $findReal === true
@@ -58,6 +65,13 @@ final class VariableGenerator
 	}
 
 
+	/**
+	 * Automatically finds a unique Doctrine entity that implements the OrderEntity interface.
+	 * In most applications, there is only one unique entity for an order,
+	 * so this interface can be used as the key for the search.
+	 * If your application uses multiple entities for which you need to generate variable symbols,
+	 * implement a custom service for VariableLoader.
+	 */
 	private function resolveVariableLoader(?VariableLoader $loader, ?EntityManagerInterface $em): VariableLoader
 	{
 		if ($loader !== null) {

@@ -5,6 +5,15 @@ Variable generator
 
 Generate new variable symbol by last variable and selected strategy.
 
+Idea
+----
+
+A series of smart tools for generating variable symbols and order numbers in your e-shop.
+
+Generating order numbers or other number series hides a number of complex problems. For example, adhering to the specified format according to the specification, handling transaction entries (to avoid duplication) and handling the case when the generated value overflows.
+
+This package contains a set of algorithms and ready-made strategies to elegantly solve these problems. If any of the algorithms do not suit you, you can implement your own just by satisfying the defined interface.
+
 📦 Installation
 ---------------
 

@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Baraja\VariableGenerator\Strategy;
 
 
+/**
+ * The service just adds one to the last generated number and tries to keep the range.
+ * No further logic is performed.
+ * If the number did not exist before, it generates a new one with the prefix of the current year.
+ */
 final class SimpleIncrementStrategy implements FormatStrategy
 {
 	public function __construct(

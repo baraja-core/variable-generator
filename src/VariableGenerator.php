@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Baraja\VariableGenerator;
 
 
+use Baraja\Lock\Lock;
 use Baraja\VariableGenerator\Order\DefaultOrderVariableLoader;
 use Baraja\VariableGenerator\Order\OrderEntity;
 use Baraja\VariableGenerator\Strategy\FormatStrategy;
@@ -35,8 +36,10 @@ final class VariableGenerator
 	 * Generate new variable symbol by last variable.
 	 * In case of invalid last symbol or init, use first valid symbol by specific strategy.
 	 */
-	public function generate(?string $last = null): int
+	public function generate(?string $last = null, string $transactionName = 'variable-generator'): int
 	{
+		Lock::wait($transactionName);
+		Lock::startTransaction($transactionName);
 		$last ??= $this->variableLoader->getCurrent();
 		$new = $last === null
 			? $this->strategy->getFirst()

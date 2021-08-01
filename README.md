@@ -70,6 +70,11 @@ You can always choose your own strategy for generating numbers:
 $generator->setStrategy();
 ```
 
+Protection duplicate number generation
+--------------------------------------
+
+This tool automatically protects you from generating a duplicate number. To protect you, an automatic lock (see the `baraja-core/lock` library for more information) is used, which allows only one number to be generated at a time, while competing processes in other threads are suspended in the meantime.
+
 📄 License
 -----------
 

@@ -18,7 +18,7 @@ This package contains a set of algorithms and ready-made strategies to elegantly
 ---------------
 
 It's best to use [Composer](https://getcomposer.org) for installation, and you can also find the package on
-[Packagist](https://packagist.org/packages/baraja-core/admin-bar) and
+[Packagist](https://packagist.org/packages/baraja-core/variable-generator) and
 [GitHub](https://github.com/baraja-core/variable-generator).
 
 To install, simply use the command:

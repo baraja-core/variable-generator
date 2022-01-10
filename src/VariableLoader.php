@@ -12,5 +12,12 @@ namespace Baraja\VariableGenerator;
  */
 interface VariableLoader
 {
+	/**
+	 * Returns the currently most recent ID or entity number for which we will generate a new identifier.
+	 * Always retrieve real data for generation (for example, by calling an SQL query) and do not use caching.
+	 * Always try to optimize the data retrieval processing as much as possible,
+	 * as this method cannot be called in parallel and is disk locked during processing
+	 * preventing other processes from generating the new ID.
+	 */
 	public function getCurrent(): ?string;
 }

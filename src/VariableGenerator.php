@@ -35,17 +35,25 @@ final class VariableGenerator
 	/**
 	 * Generate new variable symbol by last variable.
 	 * In case of invalid last symbol or init, use first valid symbol by specific strategy.
+	 * You must use the generated ID immediately to save the new record to the database.
+	 * Before generating the ID, a lock (transaction) is created, and we reserve a time of 1000 ms to save new entity.
+	 * After that, the next number may be generated and data integrity may be broken.
 	 */
 	public function generate(?string $last = null, string $transactionName = 'variable-generator'): int
 	{
 		Lock::wait($transactionName);
-		Lock::startTransaction($transactionName);
+		Lock::startTransaction($transactionName, 15000);
 		$last ??= $this->variableLoader->getCurrent();
 		$new = $last === null
 			? $this->strategy->getFirst()
 			: $this->strategy->generate((string) preg_replace('/\D+/', '', $last));
 
-		return (int) $new;
+		$return = (int) $new;
+
+		// Starts a short transaction because the new method must be saved (provision for application and database delays).
+		Lock::startTransaction($transactionName, 1000);
+
+		return $return;
 	}
 
 

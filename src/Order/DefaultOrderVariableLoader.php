@@ -34,13 +34,16 @@ final class DefaultOrderVariableLoader implements VariableLoader
 				->setParameter(
 					'preferenceInsertedDateFrom',
 					$findFromDate === null
-						? sprintf('%s-%s', (date('Y') - 1), date('m-d'))
+						? sprintf('%s-%s', date('Y') - 1, date('m-d'))
 						: $findFromDate->format('Y-m-d'),
 				);
 		}
 
 		try {
-			return (string) $selector->getQuery()->getSingleScalarResult();
+			$number = $selector->getQuery()->getSingleScalarResult();
+			if (is_scalar($number) || $number === null) {
+				return (string) $number;
+			}
 		} catch (\Throwable) {
 			// Silence is golden.
 		}

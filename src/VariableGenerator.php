@@ -94,8 +94,8 @@ final class VariableGenerator
 		}
 		$canonicalEntity = null;
 		foreach ($em->getMetadataFactory()->getAllMetadata() as $entity) {
+			/** @var \ReflectionClass $rc */
 			$rc = $entity->getReflectionClass();
-			assert($rc !== null);
 			if ($rc->implementsInterface(OrderEntity::class)) {
 				if ($canonicalEntity !== null) {
 					throw new \LogicException(

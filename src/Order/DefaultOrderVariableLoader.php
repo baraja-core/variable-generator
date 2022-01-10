@@ -34,7 +34,7 @@ final class DefaultOrderVariableLoader implements VariableLoader
 				->setParameter(
 					'preferenceInsertedDateFrom',
 					$findFromDate === null
-						? (date('Y') - 1) . '-' . date('m-d')
+						? sprintf('%s-%s', (date('Y') - 1), date('m-d'))
 						: $findFromDate->format('Y-m-d'),
 				);
 		}

@@ -34,7 +34,7 @@ final class YearPrefixIncrementStrategy implements FormatStrategy
 	public function generate(string $last): string
 	{
 		$year = date('y');
-		if (preg_match('/^' . $year . '(?<count>\d+)$/', $last, $parser)) {
+		if (preg_match('/^' . $year . '(?<count>\d+)$/', $last, $parser) === 1) {
 			$length = $this->length ?? strlen($parser['count']);
 			$new = $year
 				. str_pad(

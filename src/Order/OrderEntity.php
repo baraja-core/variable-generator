@@ -14,5 +14,8 @@ interface OrderEntity
 {
 	public function getId(): string|int|null;
 
+	/**
+	 * @return non-empty-string
+	 */
 	public function getNumber(): string;
 }

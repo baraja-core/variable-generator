@@ -16,7 +16,7 @@ final class SimpleIncrementStrategy implements FormatStrategy
 		private int $length = 8,
 	) {
 		if ($length < 4) {
-			throw new \InvalidArgumentException('Minimal length is 4, but "' . $length . '" given.');
+			throw new \InvalidArgumentException(sprintf('Minimal length is 4, but "%d" given.', $length));
 		}
 	}
 

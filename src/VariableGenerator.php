@@ -25,7 +25,7 @@ final class VariableGenerator
 	public function __construct(
 		?VariableLoader $variableLoader = null,
 		?FormatStrategy $strategy = null,
-		?EntityManagerInterface $em = null
+		?EntityManagerInterface $em = null,
 	) {
 		$this->variableLoader = $this->resolveVariableLoader($variableLoader, $em);
 		$this->strategy = $strategy ?? new YearPrefixIncrementStrategy;
@@ -43,7 +43,7 @@ final class VariableGenerator
 		$last ??= $this->variableLoader->getCurrent();
 		$new = $last === null
 			? $this->strategy->getFirst()
-			: $this->strategy->generate((string) preg_replace('/\D+/', '', (string) $last));
+			: $this->strategy->generate((string) preg_replace('/\D+/', '', $last));
 
 		return (int) $new;
 	}
@@ -83,27 +83,38 @@ final class VariableGenerator
 		}
 		if ($em === null) {
 			throw new \RuntimeException(
-				'Service for VariableLoader not found. '
-				. 'Please implement your own service that implements "' . VariableLoader::class . '" interface, '
-				. 'or implement the "' . OrderEntity::class . '" interface for one of the Doctrine entities.',
+				sprintf(
+					'Service for VariableLoader not found. '
+					. 'Please implement your own service that implements "%s" interface, '
+					. 'or implement the "%s" interface for one of the Doctrine entities.',
+					VariableLoader::class,
+					OrderEntity::class,
+				),
 			);
 		}
 		$canonicalEntity = null;
 		foreach ($em->getMetadataFactory()->getAllMetadata() as $entity) {
-			if ($entity->getReflectionClass()->implementsInterface(OrderEntity::class)) {
+			$rc = $entity->getReflectionClass();
+			assert($rc !== null);
+			if ($rc->implementsInterface(OrderEntity::class)) {
 				if ($canonicalEntity !== null) {
 					throw new \LogicException(
-						'OrderEntity search error: Several entities implement the same "' . OrderEntity::class . '" interface.' . "\n"
-						. 'Found entities: "' . $entity->getName() . '" and "' . $canonicalEntity . '"' . "\n"
-						. 'To solve this issue: Set dependencies so that only one entity implements this general interface. '
-						. 'If you need to keep the current definitions, implement your own service for VariableLoader.',
+						sprintf(
+							'OrderEntity search error: Several entities implement the same "%s" interface.' . "\n"
+							. 'Found entities: "%s" and "%s"' . "\n"
+							. 'To solve this issue: Set dependencies so that only one entity implements this general interface. '
+							. 'If you need to keep the current definitions, implement your own service for VariableLoader.',
+							OrderEntity::class,
+							$entity->getName(),
+							$canonicalEntity,
+						),
 					);
 				}
 				$canonicalEntity = $entity->getName();
 			}
 		}
 		if ($canonicalEntity === null) {
-			throw new \LogicException('There is no Doctrine entity that implements the "' . OrderEntity::class . '" interface.');
+			throw new \LogicException(sprintf('There is no Doctrine entity that implements the "%s" interface.', OrderEntity::class));
 		}
 
 		return new DefaultOrderVariableLoader($em, $canonicalEntity);

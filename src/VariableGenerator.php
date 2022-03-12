@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Baraja\VariableGenerator;
 
 
+use Baraja\Lock\Lock;
 use Baraja\VariableGenerator\Order\DefaultOrderVariableLoader;
 use Baraja\VariableGenerator\Order\OrderEntity;
 use Baraja\VariableGenerator\Strategy\FormatStrategy;
 use Baraja\VariableGenerator\Strategy\YearPrefixIncrementStrategy;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * A generic service for generating a unique order number, variable symbol or other unique identifier.
+ */
 final class VariableGenerator
 {
 	private VariableLoader $variableLoader;
@@ -21,7 +25,7 @@ final class VariableGenerator
 	public function __construct(
 		?VariableLoader $variableLoader = null,
 		?FormatStrategy $strategy = null,
-		?EntityManagerInterface $em = null
+		?EntityManagerInterface $em = null,
 	) {
 		$this->variableLoader = $this->resolveVariableLoader($variableLoader, $em);
 		$this->strategy = $strategy ?? new YearPrefixIncrementStrategy;
@@ -31,20 +35,39 @@ final class VariableGenerator
 	/**
 	 * Generate new variable symbol by last variable.
 	 * In case of invalid last symbol or init, use first valid symbol by specific strategy.
+	 * You must use the generated ID immediately to save the new record to the database.
+	 * Before generating the ID, a lock (transaction) is created, and we reserve a time of 1000 ms to save new entity.
+	 * After that, the next number may be generated and data integrity may be broken.
 	 */
-	public function generate(?string $last = null): int
+	public function generate(?string $last = null, string $transactionName = 'variable-generator'): int
 	{
-		$new = ($last ??= $this->variableLoader->getCurrent()) === null
+		Lock::wait($transactionName);
+		Lock::startTransaction($transactionName, 15000);
+		$last ??= $this->variableLoader->getCurrent();
+		$new = $last === null
 			? $this->strategy->getFirst()
-			: $this->strategy->generate((string) preg_replace('/\D+/', '', (string) $last));
+			: $this->strategy->generate((string) preg_replace('/\D+/', '', $last));
 
-		return (int) $new;
+		$return = (int) $new;
+
+		// Starts a short transaction because the new method must be saved (provision for application and database delays).
+		Lock::startTransaction($transactionName, 1000);
+
+		return $return;
 	}
 
 
+	/**
+	 * Returns the current latest number. For example, the order number.
+	 * Warning: Never use this number for create a new entity, in this case use the generate() method.
+	 */
 	public function getCurrent(bool $findReal = true): int
 	{
-		return (int) (($findReal === true ? $this->variableLoader->getCurrent() : null) ?? $this->strategy->getFirst());
+		$currentValue = $findReal === true
+			? $this->variableLoader->getCurrent()
+			: null;
+
+		return (int) ($currentValue ?? $this->strategy->getFirst());
 	}
 
 
@@ -54,6 +77,13 @@ final class VariableGenerator
 	}
 
 
+	/**
+	 * Automatically finds a unique Doctrine entity that implements the OrderEntity interface.
+	 * In most applications, there is only one unique entity for an order,
+	 * so this interface can be used as the key for the search.
+	 * If your application uses multiple entities for which you need to generate variable symbols,
+	 * implement a custom service for VariableLoader.
+	 */
 	private function resolveVariableLoader(?VariableLoader $loader, ?EntityManagerInterface $em): VariableLoader
 	{
 		if ($loader !== null) {
@@ -61,27 +91,38 @@ final class VariableGenerator
 		}
 		if ($em === null) {
 			throw new \RuntimeException(
-				'Service for VariableLoader not found. '
-				. 'Please implement your own service that implements "' . VariableLoader::class . '" interface, '
-				. 'or implement the "' . OrderEntity::class . '" interface for one of the Doctrine entities.',
+				sprintf(
+					'Service for VariableLoader not found. '
+					. 'Please implement your own service that implements "%s" interface, '
+					. 'or implement the "%s" interface for one of the Doctrine entities.',
+					VariableLoader::class,
+					OrderEntity::class,
+				),
 			);
 		}
 		$canonicalEntity = null;
 		foreach ($em->getMetadataFactory()->getAllMetadata() as $entity) {
-			if ($entity->getReflectionClass()->implementsInterface(OrderEntity::class)) {
+			/** @var \ReflectionClass $rc */
+			$rc = $entity->getReflectionClass();
+			if ($rc->implementsInterface(OrderEntity::class)) {
 				if ($canonicalEntity !== null) {
 					throw new \LogicException(
-						'OrderEntity search error: Several entities implement the same "' . OrderEntity::class . '" interface.' . "\n"
-						. 'Found entities: "' . $entity->getName() . '" and "' . $canonicalEntity . '"' . "\n"
-						. 'To solve this issue: Set dependencies so that only one entity implements this general interface. '
-						. 'If you need to keep the current definitions, implement your own service for VariableLoader.',
+						sprintf(
+							'OrderEntity search error: Several entities implement the same "%s" interface.' . "\n"
+							. 'Found entities: "%s" and "%s"' . "\n"
+							. 'To solve this issue: Set dependencies so that only one entity implements this general interface. '
+							. 'If you need to keep the current definitions, implement your own service for VariableLoader.',
+							OrderEntity::class,
+							$entity->getName(),
+							$canonicalEntity,
+						),
 					);
 				}
 				$canonicalEntity = $entity->getName();
 			}
 		}
 		if ($canonicalEntity === null) {
-			throw new \LogicException('There is no Doctrine entity that implements the "' . OrderEntity::class . '" interface.');
+			throw new \LogicException(sprintf('There is no Doctrine entity that implements the "%s" interface.', OrderEntity::class));
 		}
 
 		return new DefaultOrderVariableLoader($em, $canonicalEntity);

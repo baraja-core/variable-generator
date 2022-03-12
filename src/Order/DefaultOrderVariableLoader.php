@@ -11,15 +11,10 @@ use Doctrine\ORM\EntityRepository;
 
 final class DefaultOrderVariableLoader implements VariableLoader
 {
-	private EntityManagerInterface $entityManager;
-
-	private string $entityClassName;
-
-
-	public function __construct(EntityManagerInterface $entityManager, string $entityClassName)
-	{
-		$this->entityManager = $entityManager;
-		$this->entityClassName = $entityClassName;
+	public function __construct(
+		private EntityManagerInterface $entityManager,
+		private string $entityClassName,
+	) {
 	}
 
 
@@ -39,14 +34,18 @@ final class DefaultOrderVariableLoader implements VariableLoader
 				->setParameter(
 					'preferenceInsertedDateFrom',
 					$findFromDate === null
-						? (date('Y') - 1) . '-' . date('m-d')
+						? sprintf('%s-%s', date('Y') - 1, date('m-d'))
 						: $findFromDate->format('Y-m-d'),
 				);
 		}
 
 		try {
-			return (string) $selector->getQuery()->getSingleScalarResult();
-		} catch (\Throwable $e) {
+			$number = $selector->getQuery()->getSingleScalarResult();
+			if (is_scalar($number) || $number === null) {
+				return (string) $number;
+			}
+		} catch (\Throwable) {
+			// Silence is golden.
 		}
 
 		return null;

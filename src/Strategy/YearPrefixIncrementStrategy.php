@@ -36,23 +36,24 @@ final class YearPrefixIncrementStrategy implements FormatStrategy
 		$year = date('y');
 		if (preg_match('/^' . $year . '(?<count>\d+)$/', $last, $parser) === 1) {
 			$length = $this->length ?? strlen($parser['count']);
-			$new = $year
-				. str_pad(
-					string: (string) ($parser['count'] + 1),
+			$new = sprintf(
+				'%s%s',
+				$year,
+				str_pad(
+					string: (string) (((int) $parser['count']) + 1),
 					length: $length,
 					pad_string: '0',
 					pad_type: STR_PAD_LEFT,
-				);
-		} else {
-			$new = $this->getFirst();
+				),
+			);
 		}
 
-		return $new;
+		return $new ?? $this->getFirst();
 	}
 
 
 	public function getFirst(): string
 	{
-		return date('y') . str_repeat('0', ($this->length ?? $this->preferredLength) - 3) . '1';
+		return sprintf('%s%s1', date('y'), str_repeat('0', ($this->length ?? $this->preferredLength) - 3));
 	}
 }
